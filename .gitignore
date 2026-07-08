@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+
+data/raw/**
+!data/raw/
+!data/raw/.gitkeep
+!data/raw/images/
+!data/raw/images/images/
+!data/raw/images/images/.gitkeep
+
+*.zip
+*.parquet
+*.csv

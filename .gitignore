@@ -8,6 +8,11 @@ data/raw/**
 !data/raw/images/images/
 !data/raw/images/images/.gitkeep
 
+data/processed/**
+!data/processed/
+!data/processed/.gitkeep
+
+
 *.zip
 *.parquet
 *.csv

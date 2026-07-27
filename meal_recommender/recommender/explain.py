@@ -1,3 +1,6 @@
+from recommender.scorer import has_any_match, matching_values
+
+
 def generate_explanation(recipe, profile):
     """
     Analyzes a recipe against a profile to produce a human-readable 
@@ -9,34 +12,46 @@ def generate_explanation(recipe, profile):
     # 1. Logic to identify matches (Independent of points)
     
     # Meal
-    user_meal = profile.get('meal', {}).get('value')
-    if user_meal and user_meal == recipe.get('primary_meal'):
-        matches.append(f"{user_meal} meal")
+    user_meal = profile.get("meal", {}).get("value")
+    recipe_meal = recipe.get("primary_meal")
+    if has_any_match(user_meal, recipe_meal):
+        matched_meals = matching_values(user_meal, recipe_meal)
+        matches.append(f"{', '.join(matched_meals)} meal")
 
     # Cuisine
-    user_cuisine = profile.get('cuisine', {}).get('value')
-    if user_cuisine and user_cuisine in (tags.get('cuisine_grouped') or []):
-        matches.append(f"{user_cuisine} cuisine")
+    user_cuisine = profile.get("cuisine", {}).get("value")
+    recipe_cuisine = tags.get("cuisine_grouped") or []
+    if has_any_match(user_cuisine, recipe_cuisine):
+        matched_cuisines = matching_values(user_cuisine, recipe_cuisine)
+        matches.append(f"{', '.join(matched_cuisines)} cuisine")
 
     # Ingredient
-    user_ing = profile.get('ingredient', {}).get('value')
-    if user_ing and user_ing in (tags.get('ingredient_grouped') or []):
-        matches.append(f"{user_ing} ingredient group")
+    user_ing = profile.get("ingredient", {}).get("value")
+    recipe_ingredients = tags.get("ingredient_grouped") or []
+    if has_any_match(user_ing, recipe_ingredients):
+        matched_ingredients = matching_values(user_ing, recipe_ingredients)
+        matches.append(f"{', '.join(matched_ingredients)} ingredient group")
 
     # Type
-    user_type = profile.get('type', {}).get('value')
-    if user_type and user_type in (tags.get('type_grouped') or []):
-        matches.append(f"{user_type} category")
+    user_type = profile.get("type", {}).get("value")
+    recipe_types = tags.get("type_grouped") or []
+    if has_any_match(user_type, recipe_types):
+        matched_types = matching_values(user_type, recipe_types)
+        matches.append(f"{', '.join(matched_types)} category")
 
     # Simple Cooking
-    user_simple = profile.get('simple_cooking', {}).get('value')
-    if user_simple and user_simple in (tags.get('simple-cooking') or []):
-        matches.append(f"{user_simple} cooking style")
+    user_simple = profile.get("simple_cooking", {}).get("value")
+    recipe_simple = tags.get("simple-cooking") or []
+    if has_any_match(user_simple, recipe_simple):
+        matched_simple = matching_values(user_simple, recipe_simple)
+        matches.append(f"{', '.join(matched_simple)} cooking style")
 
     # Special Consideration
-    user_special = profile.get('special', {}).get('value')
-    if user_special and user_special in (tags.get('special-consideration') or []):
-        matches.append(f"{user_special} requirement")
+    user_special = profile.get("special", {}).get("value")
+    recipe_special = tags.get("special-consideration") or []
+    if has_any_match(user_special, recipe_special):
+        matched_special = matching_values(user_special, recipe_special)
+        matches.append(f"{', '.join(matched_special)} dietary preference")
 
     # Cooking Time
     user_time = profile.get('cooking_time', {}).get('value')
@@ -71,6 +86,8 @@ def generate_explanation(recipe, profile):
         "list": checkbox_list,
         "sentence": sentence
     }
+
+
 
 # --- TEST ---
 if __name__ == "__main__":

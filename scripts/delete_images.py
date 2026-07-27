@@ -2,9 +2,9 @@ import json
 import os
 
 # CONFIGURATION
-file = '../data/processed/double_cleaned_recipes.json'  
+file = '../meal_recommender/data/recipes_group_preprocessed.json'  # Path to the JSON file
 image_folder = '../data/raw/images/images'  
-stays = True  # True = Only print names. False = Actually DELETE.
+stays = False  # True = Only print names. False = Actually DELETE.
 
 def clean_images():
     # 1. Get names from JSON

@@ -5,35 +5,42 @@ IMPORTANCE_WEIGHTS = {
     "Slightly important": 2,
     "Moderately important": 3,
     "Very important": 4,
-    "Extremely important": 5
+    "Extremely important": 5,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
 }
 
 def _normalize_preference(preference):
+
     """
     Standardizes user input.
     Rule: If a value is selected but no importance is given, default weight is 1.
     If no value is selected, weight is 0.
     """
+
     if not preference:
         return {"value": None, "weight": 0}
-
+    
     # Extract the value (handles both 'val' or 'value' keys)
     val = preference.get("val") or preference.get("value")
-    
-    # Handle 'Any' or empty selections
-    if val is None or val == "Any" or val == "":
-        return {"value": None, "weight": 0}
 
-    # Extract the importance
-    importance_label = preference.get("importance")
+    # Handle 'Any' or empty selections
+    if val is None or val == "Any" or val == "" or val == []:
+        return {"value": None, "weight": 0}
     
+    # Extract the importance
+    importance = preference.get("importance")
+
     # Logic: If importance_label is missing or None, .get() returns 1 (our default)
     # If importance_label exists in IMPORTANCE_WEIGHTS, it returns 1-5
-    weight = IMPORTANCE_WEIGHTS.get(importance_label, 1)
+    weight = IMPORTANCE_WEIGHTS.get(importance, 1)
 
     return {
         "value": val,
-        "weight": weight
+        "weight": weight,
     }
 
 def create_profile(user_preferences=None, **kwargs):
@@ -49,6 +56,7 @@ def create_profile(user_preferences=None, **kwargs):
         "cuisine": _normalize_preference(user_preferences.get("cuisine")),
         "meal": _normalize_preference(user_preferences.get("meal")),
         "ingredient": _normalize_preference(user_preferences.get("ingredient")),
+        "exclude_ingredients": _normalize_preference(user_preferences.get("exclude_ingredients")),
         "type": _normalize_preference(user_preferences.get("type") or user_preferences.get("recipe_type")),
         "simple_cooking": _normalize_preference(user_preferences.get("simple_cooking")),
         "special": _normalize_preference(user_preferences.get("special")),

@@ -74,17 +74,92 @@ def apply_global_styles():
             margin-bottom: 0.75rem;
         }
 
-        .recipe-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            line-height: 1.25;
-            margin-bottom: 0.5rem;
+        [class*="_recipe_card_"] [data-testid="stImage"] img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 6px;
         }
 
-        .recipe-meta {
+        .recipe-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.35;
+            min-height: 4.25rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+
+        .recipe-card-meta {
             color: var(--muted);
             font-size: 0.9rem;
-            margin-bottom: 0.75rem;
+            line-height: 1.4;
+            min-height: 2.6rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+        }
+
+        .recipe-card-explanation {
+            height: 10.5rem;
+            min-height: 10.5rem;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            background: #E5F1FA;
+            line-height: 1.5;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .recipe-card-explanation summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .recipe-card-explanation summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .recipe-card-explanation-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .recipe-card-explanation-label::after {
+            content: "⌄";
+            color: var(--primary);
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .recipe-card-explanation[open] .recipe-card-explanation-label::after {
+            content: "⌃";
+        }
+
+        .recipe-card-explanation-preview {
+            margin-top: 0.45rem;
+            color: var(--text);
+            font-weight: 400;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
+            overflow: hidden;
+        }
+
+        .recipe-card-explanation[open] .recipe-card-explanation-preview {
+            display: none;
+        }
+
+        .recipe-card-explanation-full {
+            margin-top: 0.65rem;
+            color: var(--text);
         }
 
         .recipe-detail {
@@ -210,6 +285,14 @@ def apply_global_styles():
             color: var(--primary) !important;
         }
 
+        div.stButton > button[kind="primary"] p,
+        div.stButton > button[kind="primary"] span,
+        div.stButton > button[data-testid="baseButton-primary"] p,
+        div.stButton > button[data-testid="baseButton-primary"] span {
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+        }
+
         div[data-testid="stPopoverBody"] div.stButton > button {
             width: 30px !important;
             height: 30px !important;
@@ -274,6 +357,9 @@ def init_session_state():
 
     if "last_preferences" not in st.session_state:
         st.session_state.last_preferences = None
+
+    if "chosen_meals" not in st.session_state:
+        st.session_state.chosen_meals = []
 
 
 

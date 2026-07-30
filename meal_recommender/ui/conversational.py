@@ -16,9 +16,12 @@ def render_conversational_interface():
             {"role": "assistant", "content": greeting}
         )
 
-    for message in st.session_state.chat_messages:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
+    chat_history = st.container()
+
+    with chat_history:
+        for message in st.session_state.chat_messages:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
 
     user_message = st.chat_input("Tell me what you feel like eating.")
 
@@ -29,19 +32,20 @@ def render_conversational_interface():
         {"role": "user", "content": user_message}
     )
 
-    with st.chat_message("user"):
-        st.write(user_message)
+    with chat_history:
+        with st.chat_message("user"):
+            st.write(user_message)
 
-    with st.spinner("Thinking..."):
-        try:
-            llm_result = collect_preferences(st.session_state.chat_messages)
-        except Exception as error:
-            st.error(
-                "The chat assistant could not process the message. "
-                "Check your Gemini API key and connection."
-            )
-            st.exception(error)
-            return
+        with st.spinner("Thinking..."):
+            try:
+                llm_result = collect_preferences(st.session_state.chat_messages)
+            except Exception as error:
+                st.error(
+                    "The chat assistant could not process the message. "
+                    "Check your Gemini API key and connection."
+                )
+                st.exception(error)
+                return
 
     assistant_message = llm_result["assistant_message"]
 
@@ -49,8 +53,9 @@ def render_conversational_interface():
         {"role": "assistant", "content": assistant_message}
     )
 
-    with st.chat_message("assistant"):
-        st.write(assistant_message)
+    with chat_history:
+        with st.chat_message("assistant"):
+            st.write(assistant_message)
 
     if llm_result["ready_to_recommend"]:
         preferences = to_backend_preferences(llm_result["preferences"])

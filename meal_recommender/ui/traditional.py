@@ -26,7 +26,7 @@ def importance_dots(label, key, default=3):
                 button_label,
                 key=f"{state_key}_button_{value}",
                 help=f"Set importance to {value} out of 5",
-                use_container_width=True,
+                width="stretch",
             ):
                 st.session_state[state_key] = value
                 st.rerun()
@@ -68,7 +68,7 @@ def checkbox_filter_options(title, options, key, column_count=1):
 
 
 def multi_filter_popover(title, options, key, importance_label=None, column_count=1):
-    with st.popover(title, use_container_width=True):
+    with st.popover(title, width="stretch"):
         selected = checkbox_filter_options(title, options, key, column_count)
 
         importance = importance_dots(
@@ -111,7 +111,7 @@ def render_traditional_interface():
         )
 
     with row1[2]:
-        with st.popover("Ingredients to Exclude", use_container_width=True):
+        with st.popover("Ingredients to Exclude", width="stretch"):
             exclude_ingredients = checkbox_filter_options(
                 "Ingredients to Exclude",
                 options["ingredient"],
@@ -156,7 +156,7 @@ def render_traditional_interface():
         )
 
     with row3[1]:
-        with st.popover("Cooking Time", use_container_width=True):
+        with st.popover("Cooking Time", width="stretch"):
             use_cooking_time = st.checkbox(
                 "Use cooking time filter",
                 key="use_cooking_time",
@@ -179,11 +179,15 @@ def render_traditional_interface():
     with row3[2]:
         st.empty()
 
-    submitted = st.button(
-        "Recommend meals",
-        use_container_width=True,
-        type="primary",
-    )
+    _, submit_column, _ = st.columns([1, 2, 1])
+
+    with submit_column:
+        submitted = st.button(
+            "Recommend meals",
+            key="recommend_meals",
+            width="stretch",
+            type="primary",
+        )
 
     if submitted:
         preferences = {

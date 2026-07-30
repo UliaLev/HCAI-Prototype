@@ -1,3 +1,4 @@
+from html import escape
 from pathlib import Path
 
 import streamlit as st
@@ -52,30 +53,143 @@ def get_image_path(recipe):
     return None
 
 
+def get_recipe_key(recipe):
+    return safe_text(
+        recipe.get("id") or recipe.get("recipe_id") or recipe.get("title"),
+        "Untitled recipe",
+    )
+
+
+def is_chosen_meal(recipe):
+    recipe_key = get_recipe_key(recipe)
+    return any(
+        get_recipe_key(chosen_recipe) == recipe_key
+        for chosen_recipe in st.session_state.chosen_meals
+    )
+
+
+def add_chosen_meal(recipe):
+    if not is_chosen_meal(recipe):
+        st.session_state.chosen_meals.append(recipe)
+
+
+def remove_chosen_meal(recipe):
+    recipe_key = get_recipe_key(recipe)
+    st.session_state.chosen_meals = [
+        chosen_recipe
+        for chosen_recipe in st.session_state.chosen_meals
+        if get_recipe_key(chosen_recipe) != recipe_key
+    ]
+
+
+def render_chosen_meals(key_prefix):
+    st.subheader("Meals chosen:")
+
+    if not st.session_state.chosen_meals:
+        st.caption("No meals chosen yet.")
+        return
+
+    for index, recipe in enumerate(st.session_state.chosen_meals):
+        title = safe_text(recipe.get("title"), "Untitled recipe")
+        cooking_time = safe_text(recipe.get("cooking_time"), "Time not listed")
+        meal_columns = st.columns([5, 2, 1])
+
+        with meal_columns[0]:
+            st.write(f"**{title}**")
+
+        with meal_columns[1]:
+            st.caption(f"{cooking_time} minutes")
+
+        with meal_columns[2]:
+            if st.button(
+                "Remove",
+                key=f"{key_prefix}_remove_chosen_meal_{index}",
+                width="stretch",
+            ):
+                remove_chosen_meal(recipe)
+                st.rerun()
+
+    if st.button(
+        "Clear chosen meals",
+        key=f"{key_prefix}_clear_chosen_meals",
+    ):
+        st.session_state.chosen_meals = []
+        st.rerun()
+
+
 def render_recipe_card(item, index, key_prefix):
     recipe = item["recipe"]
     tags = recipe.get("tags") or {}
     image_path = get_image_path(recipe)
+    chosen = is_chosen_meal(recipe)
+    title = safe_text(recipe.get("title"), "Untitled recipe")
+    cuisine = safe_text(tags.get("cuisine_grouped"), "Cuisine not listed")
+    cooking_time = safe_text(recipe.get("cooking_time"), "Time not listed")
+    explanation = item.get("explanation") or {}
+    explanation_text = safe_text(
+        explanation.get("sentence"),
+        "Recommended based on your selected preferences.",
+    )
 
-    with st.container(border=True):
+    with st.container(
+        border=True,
+        height=790,
+        key=f"{key_prefix}_recipe_card_{index}",
+    ):
         if image_path:
-            st.image(str(image_path), use_container_width=True)
+            st.image(str(image_path), width="stretch")
 
         st.markdown(
-            f"**{safe_text(recipe.get('title'), 'Untitled recipe')}**"
+            (
+                f'<div class="recipe-card-title" title="{escape(title)}">'
+                f"{escape(title)}</div>"
+            ),
+            unsafe_allow_html=True,
         )
 
-        cuisine = safe_text(tags.get("cuisine_grouped"), "Cuisine not listed")
-        cooking_time = safe_text(recipe.get("cooking_time"), "Time not listed")
+        meta = f"{cuisine} · {cooking_time} minutes"
+        st.markdown(
+            (
+                f'<div class="recipe-card-meta" title="{escape(meta)}">'
+                f"{escape(meta)}</div>"
+            ),
+            unsafe_allow_html=True,
+        )
 
-        st.caption(f"{cuisine} · {cooking_time} minutes")
+        st.markdown(
+            (
+                '<details class="recipe-card-explanation">'
+                "<summary>"
+                '<span class="recipe-card-explanation-label">'
+                "Why this recipe?"
+                "</span>"
+                '<span class="recipe-card-explanation-preview">'
+                f"{escape(explanation_text)}"
+                "</span>"
+                "</summary>"
+                '<div class="recipe-card-explanation-full">'
+                f"{escape(explanation_text)}"
+                "</div>"
+                "</details>"
+            ),
+            unsafe_allow_html=True,
+        )
 
-        explanation = item.get("explanation") or {}
-        if explanation.get("sentence"):
-            st.info(explanation["sentence"])
-
-        if st.button("View recipe", key=f"{key_prefix}_view_recipe_{index}"):
+        if st.button(
+            "View recipe",
+            key=f"{key_prefix}_view_recipe_{index}",
+            width="stretch",
+        ):
             st.session_state.selected_recipe = recipe
+            st.rerun()
+
+        if st.button(
+            "Chosen" if chosen else "Add to chosen meals",
+            key=f"{key_prefix}_choose_recipe_{index}",
+            disabled=chosen,
+            width="stretch",
+        ):
+            add_chosen_meal(recipe)
             st.rerun()
 
 def render_recipe_detail(recipe, key_prefix):
@@ -157,6 +271,8 @@ def render_numbered_instructions(instructions):
         st.markdown(f"{index}. {step}")
 
 def render_recommendations(key_prefix):
+    render_chosen_meals(key_prefix)
+
     if st.session_state.selected_recipe:
         render_recipe_detail(st.session_state.selected_recipe, key_prefix)
         return
@@ -170,8 +286,11 @@ def render_recommendations(key_prefix):
     st.divider()
     st.header("Recommended recipes")
 
-    columns = st.columns(3)
+    for row_start in range(0, len(results), 3):
+        columns = st.columns(3)
+        row_items = results[row_start : row_start + 3]
 
-    for index, item in enumerate(results):
-        with columns[index % 3]:
-            render_recipe_card(item, index, key_prefix)
+        for offset, (column, item) in enumerate(zip(columns, row_items)):
+            index = row_start + offset
+            with column:
+                render_recipe_card(item, index, key_prefix)

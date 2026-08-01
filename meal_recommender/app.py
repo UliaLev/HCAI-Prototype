@@ -355,6 +355,9 @@ def init_session_state():
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
 
+    if "chat_retry_pending" not in st.session_state:
+        st.session_state.chat_retry_pending = False
+
     if "last_preferences" not in st.session_state:
         st.session_state.last_preferences = None
 

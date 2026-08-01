@@ -1,7 +1,42 @@
 import streamlit as st
 
-from llm.preference_extractor import collect_preferences, to_backend_preferences
+from llm.preference_extractor import (
+    GeminiConfigurationError,
+    GeminiTemporarilyUnavailableError,
+    collect_preferences,
+    to_backend_preferences,
+)
 from recommender.recommender import get_recommendations
+
+
+def render_retry_controls():
+    st.warning(
+        "Gemini is temporarily busy. Your message is saved, so you can try "
+        "the same request again in a moment."
+    )
+
+    retry_column, discard_column = st.columns([1, 1])
+
+    retry_requested = retry_column.button(
+        "Try again",
+        type="primary",
+        key="retry_chat_message",
+    )
+
+    if discard_column.button(
+        "Discard message",
+        key="discard_chat_message",
+    ):
+        if (
+            st.session_state.chat_messages
+            and st.session_state.chat_messages[-1]["role"] == "user"
+        ):
+            st.session_state.chat_messages.pop()
+
+        st.session_state.chat_retry_pending = False
+        st.rerun()
+
+    return retry_requested
 
 
 def render_conversational_interface():
@@ -23,29 +58,48 @@ def render_conversational_interface():
             with st.chat_message(message["role"]):
                 st.write(message["content"])
 
-    user_message = st.chat_input("Tell me what you feel like eating.")
+    retry_pending = st.session_state.chat_retry_pending
 
-    if not user_message:
-        return
+    if retry_pending:
+        should_process_message = render_retry_controls()
 
-    st.session_state.chat_messages.append(
-        {"role": "user", "content": user_message}
-    )
+        if not should_process_message:
+            return
+    else:
+        user_message = st.chat_input("Tell me what you feel like eating.")
+
+        if not user_message:
+            return
+
+        st.session_state.chat_messages.append(
+            {"role": "user", "content": user_message}
+        )
+
+        with chat_history:
+            with st.chat_message("user"):
+                st.write(user_message)
 
     with chat_history:
-        with st.chat_message("user"):
-            st.write(user_message)
-
         with st.spinner("Thinking..."):
             try:
                 llm_result = collect_preferences(st.session_state.chat_messages)
-            except Exception as error:
+            except GeminiTemporarilyUnavailableError:
+                st.session_state.chat_retry_pending = True
+                st.rerun()
+            except GeminiConfigurationError:
                 st.error(
-                    "The chat assistant could not process the message. "
-                    "Check your Gemini API key and connection."
+                    "The Gemini API key is missing or was rejected. "
+                    "Check GEMINI_API_KEY in the .env file, then restart the app."
                 )
-                st.exception(error)
                 return
+            except Exception:
+                st.error(
+                    "The chat assistant could not process this message. "
+                    "Please try again."
+                )
+                return
+
+    st.session_state.chat_retry_pending = False
 
     assistant_message = llm_result["assistant_message"]
 

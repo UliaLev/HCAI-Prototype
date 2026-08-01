@@ -1,9 +1,9 @@
 import os
-from typing import Optional
+from typing import List, Optional
 
 from google import genai
+from google.genai import errors
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 SYSTEM_PROMPT = """
@@ -104,6 +104,14 @@ class PreferenceCollection(BaseModel):
     preferences: Preferences
 
 
+class GeminiConfigurationError(RuntimeError):
+    """Raised when the Gemini client cannot be authenticated or configured."""
+
+
+class GeminiTemporarilyUnavailableError(RuntimeError):
+    """Raised after the SDK has exhausted retries for a transient server error."""
+
+
 def format_chat_history(messages):
     lines = []
 
@@ -119,7 +127,9 @@ def collect_preferences(messages):
     api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY is missing. Check your .env file.")
+        raise GeminiConfigurationError(
+            "GEMINI_API_KEY is missing. Check your .env file."
+        )
 
     client = genai.Client(api_key=api_key)
 
@@ -132,14 +142,27 @@ Conversation so far:
 Return the next assistant message and the current structured preferences.
 """
 
-    response = client.models.generate_content(
-        model="gemini-flash-latest",
-        contents=prompt,
-        config={
-            "response_mime_type": "application/json",
-            "response_schema": PreferenceCollection,
-        },
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-flash-latest",
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": PreferenceCollection,
+            },
+        )
+    except errors.APIError as error:
+        if error.code in {500, 502, 503, 504}:
+            raise GeminiTemporarilyUnavailableError(
+                "Gemini is temporarily unavailable."
+            ) from error
+
+        if error.code in {401, 403}:
+            raise GeminiConfigurationError(
+                "Gemini rejected the configured API key."
+            ) from error
+
+        raise
 
     parsed = response.parsed
 

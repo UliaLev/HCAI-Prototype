@@ -91,9 +91,10 @@ def get_recommendations(user_preferences, filepath=DATA_PATH, top_n=18):
 
     return top_results
 
-# --- TEST THE ORCHESTRATOR ---
+# --- Test
+
 if __name__ == "__main__":
-    # Simulate user input from a UI
+    # Simulate user input 
     mock_preferences = {
         "cuisine": {"val": "Asian", "importance": "Strongly Agree"},
         "meal": {"val": "Dinner", "importance": "Agree"},

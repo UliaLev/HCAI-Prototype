@@ -3,6 +3,7 @@ import streamlit as st
 from llm.preference_extractor import (
     GeminiConfigurationError,
     GeminiTemporarilyUnavailableError,
+    INITIAL_ASSISTANT_MESSAGE,
     collect_preferences,
     to_backend_preferences,
 )
@@ -43,12 +44,8 @@ def render_conversational_interface():
     st.subheader("Conversational interface")
 
     if not st.session_state.chat_messages:
-        greeting = (
-            "Hi! I can help collect your meal preferences. "
-            "What kind of recipes are you in the mood for?"
-        )
         st.session_state.chat_messages.append(
-            {"role": "assistant", "content": greeting}
+            {"role": "assistant", "content": INITIAL_ASSISTANT_MESSAGE}
         )
 
     chat_history = st.container()

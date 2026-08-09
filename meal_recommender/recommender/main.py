@@ -20,13 +20,7 @@ def main():
         "meal": {"val": None}
     }
 
-
-    print("========================================")
-    print("   RECIPE RECOMMENDATION SYSTEM TEST    ")
-    print("========================================\n")
-
-    # 2. Call the Orchestrator
-    # This runs: Load -> Profile -> Score -> Rank -> Explain
+    # 2. Call the Orchestratorad -> Profile -> Score -> Rank -> Explain
     results = recommender.get_recommendations(user_preferences, top_n=5)
 
     # 3. Print the results

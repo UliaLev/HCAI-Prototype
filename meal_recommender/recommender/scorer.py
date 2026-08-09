@@ -133,21 +133,3 @@ if __name__ == "__main__":
     print(f"Results for: {test_recipe['title']}")
     print(f"Total Score: {result['score']}") # Expected: 10 + 4 + 6 + 8 = 28
     print(f"Details: {', '.join(result['matched_attributes'])}")
-
-    '''
-    The Importance Scale (Unipolar)
-
-In social science research, this is often preferred over Likert for determining weights. It measures the absolute "weight" an individual gives to a specific attribute.
-
-    Labels:
-
-       1.  Not at all important
-
-       2.  Slightly important
-
-       3.  Moderately important
-
-       4.  Very important
-
-       5.  Extremely important
-    '''
